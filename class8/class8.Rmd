@@ -1,0 +1,262 @@
+---
+title: "class8"
+author: "Miso Lee"
+date: "April 26, 2018"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+K means example-----------
+
+
+Generate some example data for clustering
+```{r}
+tmp <- c(rnorm(30,-3), rnorm(30,3))
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x)
+```
+
+
+use the kmeans() functions setting K to 2 and nstart=20
+
+```{r}
+km <- kmeans(x, centers = 2, nstart=20 )
+```
+
+inspect/print the results
+```{r}
+km
+```
+
+Q. How many points are in each cluster?
+Q. What 'component' of your result object details: cluster size, assignement/membership, centers
+
+```{r}
+km$cluster
+km$centers
+km$size
+```
+
+
+plot x colored by the kmeans cluster assignment and add cluster centers as blue points
+
+```{r}
+plot(x, col=km$cluster)
+points(km$centers, col = "blue", pch=15)
+```
+
+
+Q. Repeat for k=3, which one has the better total SS?
+
+```{r}
+km3 <- kmeans(x, centers = 3, nstart = 20)
+km3
+km3$withinss
+```
+
+########Hierarchial clustering example-----------
+
+First we need to calculate point (dis)similarity
+
+as the Euclidean distance between observations
+
+```{r}
+dist_matrix <- dist(x)
+dist_matrix
+```
+
+lets look at the class
+
+```{r}
+class(dist_matrix)
+View(as.matrix(dist_matrix))
+dim(dist_matrix)
+dim(as.matrix(dist_matrix))
+```
+
+The hclust() function returns a hierarchical
+clustering model
+
+```{r}
+hc <- hclust(d = dist_matrix)
+```
+
+the print method is not so useful here
+
+```{r}
+hc
+```
+
+Create hierarchical cluster model: hc
+
+```{r}
+hc <- hclust(dist(x))
+```
+
+We can plot the results as a dendrogram
+```{r}
+plot(hc)
+```
+
+
+```{r}
+# The hclust() function returns a hierarchical
+# clustering model
+
+hc <- hclust(d = dist_matrix)
+
+```
+
+Lets draw the tree
+
+```{r}
+plot(hc)
+abline(h=6, col="red")
+```
+
+I can 'cut' the tree at any height to give our clusters...
+
+```{r}
+# Cut at height 6
+cutree(hc, h=6)
+```
+
+cut into k grps
+
+```{r}
+cutree(hc, k=2)
+```
+
+apply()
+```{r}
+apply(x, 2, sd)
+```
+
+
+
+
+**YOUR TURN**
+
+```{r}
+x <- rbind(
+ matrix(rnorm(100, mean=0, sd = 0.3), ncol = 2), # c1
+ matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2), # c2
+ matrix(c(rnorm(50, mean = 1, sd = 0.3), # c3
+ rnorm(50, mean = 0, sd = 0.3)), ncol = 2))
+colnames(x) <- c("x", "y")
+```
+
+```{r}
+plot(x)
+```
+
+```{r}
+col <- as.factor( rep(c("c1", "c2", "c3"), each=50))
+```
+
+```{r}
+plot(x, col=col)
+```
+
+Q. Use the dist(), hclust(), plot() and cutree() functions to return 2 and 3 clusters 
+
+```{r}
+d <- dist(x)
+hc <- hclust(d)
+plot(hc)
+```
+
+```{r}
+# To return 2 clusters I could cut at h=2.5 or set k=2
+members2 <- cutree(hc, k=2)
+
+# To return 3 clusters I could cut at h=2 or set k=3
+members3 <- cutree(hc, k=3)
+
+# Let's look at both
+members <- cbind(k2=members2, k3=members3)
+```
+
+Plot
+
+```{r}
+plot(x, col=members3, pch=15)
+```
+
+
+**How to do PCA in R**
+
+```{r}
+# Generating example data to work with
+mydata <- matrix(nrow=100, ncol=10)
+
+# Let's label the rows  gene1, gene2 etc. to gene100
+rownames(mydata) <- paste("gene", 1:100, sep="")
+
+# Let's label the first 5 columns wt1, wt2, wt3, wt4 and wt5 and the last 5 ko1, ko2 etc. to ko5 (for "knock-out")
+colnames(mydata) <- c(paste("wt", 1:5, sep=""),
+                      paste("ko", 1:5, sep=""))
+
+# Fill in some fake read counts
+for(i in 1:nrow(mydata)) {
+  wt.values <- rpois(5, lambda=sample(x=10:1000, size=1))
+  ko.values <- rpois(5, lambda=sample(x=10:1000, size=1))
+  mydata[i,] <- c(wt.values, ko.values)
+}
+
+head(t(mydata))
+```
+
+```{r}
+# Let's do PCA
+pca <- prcomp(t(mydata), scale=TRUE)
+pca
+
+# See what is returned by the prcomp() function
+attributes(pca)
+
+# A basic PC1 vs PC2 2-D plot
+plot(pca$x[,1], pca$x[,2])
+
+# Variance capture per PC
+# How well are our PC's capturing our data spread (i.e. variance)
+pca.var <- pca$sdev^2
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+
+# Plot our screen plot
+barplot(pca.var.per, main="Screen Plot", xlab="Principal Component", ylab="Percent Variation")
+```
+
+Color Vector
+```{r}
+# A vector of colors for wt and ko samples
+colvec <- colnames(mydata)
+colvec[grep("wt", colvec)] <- "red"
+colvec[grep("ko", colvec)] <- "blue"
+
+# Plot
+plot(pca$x[,1], pca$x[,2], col=colvec, pch=16,
+     xlab=paste0("PC1(", pca.var.per[1], "%)"),
+     ylab=paste0("PC2(", pca.var.per[2], "%)"))
+
+# Click to identify which sample is which
+identify(pca$x[,1], pca$x[,2],  labels=colnames(mydata))
+
+##한번에 console에서 run하기
+```
+
+
+**UK FOODS**
+```{r}
+#reading UK FOODS
+UK_foods <- read.csv("UK_foods.csv", row.names = 1)
+View(UK_foods)
+```
+
+
+
+
+
+
+
