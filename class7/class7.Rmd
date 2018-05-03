@@ -1,0 +1,209 @@
+---
+title: "Bioinformatics Class7"
+author: "Miso Lee"
+date: "April 24, 2018"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions again
+
+Here I am going to revisit our function from class6
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+Let's see if we can use this function
+
+```{r}
+rescale(1:10)
+```
+
+Looks good let's break it!
+
+```{r}
+# rescale( c(1:10, "string") )
+```
+
+Let's try the new **rescale2()** function
+
+```{r}
+# rescale2( c(1:10, "string") )
+```
+
+## Write a NA checking function
+
+Here we write a new function to check for NAs in two inputs
+
+```{r}
+x <- c(1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3, 4)
+
+# is.na(x)
+```
+
+```{r}
+which(is.na(x))
+which(is.na(y))
+```
+
+```{r}
+sum (is.na(x))
+```
+
+Let's put this together with `x` and `y`
+
+```{r}
+is.na(x)
+is.na(y)
+```
+
+```{r}
+is.na(x) & is.na(y)
+```
+
+
+```{r}
+sum(is.na(x) & is.na(y))
+```
+
+This is the both_na() function starting point
+
+```{r}
+both_na <- function(x,y) {
+  sum(is.na(x) & is.na(y))
+}
+```
+
+Test it
+
+```{r}
+both_na(x,y)
+```
+
+and again
+
+```{r}
+x <- c(NA, NA, NA)
+y1 <- c(1, NA, NA)
+y2 <- c(1, NA, NA, NA)
+
+both_na(x,y2)
+```
+
+Use stop() inside function to catch this case
+
+```{r}
+both_na2 <- function(x,y) {
+  if(length(x) != length(y)) {
+    stop("Input x and y should be the same length")
+  }
+  sum(is.na(x), is.na(y))
+}
+```
+
+
+# paste(c("R is", "hard"))
+# [1] "R is" "hard"
+# > paste(c("R is", "hard"), collapse = " ")
+# [1] "R is hard"
+
+Try the both_na3() function
+
+```{r}
+both_na3 <- function(x, y) {
+ if(length(x) != length(y)) {
+ stop("Input x and y should be vectors of the same length")
+ }
+
+ na.in.both <- ( is.na(x) & is.na(y) )
+ na.number <- sum(na.in.both)
+ na.which <- which(na.in.both)
+ message("Found ", na.number, " NA's at position(s):",
+ paste(na.which, collapse=", ") )
+
+ return( list(number=na.number, which=na.which) )
+}
+```
+
+## ANother function example: gene intersection
+
+```{r}
+df1
+df2
+
+x <- df1$IDs
+y <- df2$IDs
+```
+
+```{r}
+x
+y
+```
+
+```{r}
+# intersect (x,y)
+
+x %in% y
+```
+
+```{r}
+y %in% x
+```
+
+Now we can access the genes we want with these 'indices'
+
+```{r}
+x[x %in% y]
+y[y %in% x]
+```
+
+Can make these columns of the same object with **cbind()**
+```{r}
+gene_intersect <- function(x,y) {
+  cbind (x[x %in% y], y[y %in% x])
+}
+```
+
+```{r}
+gene_intersect(x,y)
+```
+
+# Let's change to take input data frames
+
+```{r}
+gene_intersect2 <- function(df1, df2) {
+ cbind( df1[ df1$IDs %in% df2$IDs, ],
+ df2[ df2$IDs %in% df1$IDs, "exp"] )
+}
+```
+
+
+```{r}
+gene_intersect2(df1,df2)
+```
+
+# Sourcing bioconductor package
+```{r}
+# source("https://bioconductor.org/biocLite.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
