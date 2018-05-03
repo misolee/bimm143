@@ -2,7 +2,9 @@
 title: "class9"
 author: "Miso Lee"
 date: "May 1, 2018"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ## Section 1 - Preparing the data
