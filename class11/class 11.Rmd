@@ -27,3 +27,19 @@ names(percent) <- pdb.stats$Experimental.Method
 percent
 ```
 
+# Loading bio 3d
+```{r}
+library(bio3d)
+```
+
+# example
+```{r}
+example(plot.bio3d)
+```
+
+# read 1hsg pdb file
+```{r}
+pdb <- read.pdb("1hsg")
+pdb
+```
+
