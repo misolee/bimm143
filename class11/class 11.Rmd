@@ -1,0 +1,29 @@
+---
+title: "class 11"
+author: "Miso Lee"
+date: "May 8, 2018"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## PDB statistics
+
+Download CSV file from PDB database <http://www.rcsb.org/stats/summary>. Read this into R and deterine fraction of X-ray structures.
+
+```{r}
+pdb.stats <- read.csv("Data Export Summary.csv")
+```
+
+Lets caclulate something
+
+```{r}
+percent <- (pdb.stats$Total / sum(pdb.stats$Total)) * 100
+names(percent) <- pdb.stats$Experimental.Method
+percent
+```
+
