@@ -1,0 +1,34 @@
+---
+title: "class12"
+author: "Miso Lee"
+date: "May 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1.1 obtaining and inspecting our input structure
+```{r}
+library(bio3d)
+file.name <- get.pdb("1hsg")
+
+# read pdb structure into R
+hiv <- read.pdb(file.name)
+```
+
+# 1.2 prepare initial protein and ligand input files
+```{r}
+prot <- trim.pdb(hiv, "protein")
+lig <- trim.pdb(hiv, "ligand")
+
+write.pdb(prot, file="1hsg_protein.pdb")
+write.pdb(lig, "1hsg_ligand.pdb")
+```
+
+# 1.3 Using AutoDockTools to setup protein docking input
+```{r}
+
+```
+
