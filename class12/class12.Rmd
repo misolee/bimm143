@@ -36,7 +36,22 @@ write.pdb(res, "results.pdb")
 
 # access the results quantitatively (calculating RMSD(root mean square distance))
 ori <- read.pdb("1hsg_ligand.pdbqt")
-rmsd(ori, res)
+
+# atom select
+inds_res <- atom.select(res,"noh")
+# res$xyz[,inds_res$xyz]
+inds_mk <- atom.select(ori, "noh")
+rmsd(ori, res$xyz[,inds_res$xyz])
 ```
 
+# 5.2 Search and retrieve Adenylate kinase structures
+```{r}
+aa <- get.seq("p69441")
+
+# input to the blast.pdb() function
+b <- blast.pdb(aa)
+
+# plot a summary of search results
+hits <- plot(b)
+```
 
