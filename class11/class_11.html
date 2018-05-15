@@ -138,6 +138,90 @@ percent</code></pre>
 ##               Other        Multi Method 
 ##          0.17006317          0.08788979</code></pre>
 </div>
+<div id="loading-bio-3d" class="section level1">
+<h1>Loading bio 3d</h1>
+<pre class="r"><code>library(bio3d)</code></pre>
+</div>
+<div id="example" class="section level1">
+<h1>example</h1>
+<pre class="r"><code>example(plot.bio3d)</code></pre>
+<pre><code>## 
+## plt.b3&gt; ## No test: 
+## plt.b3&gt; ##D # PDB server connection required - testing excluded
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Plot of B-factor values along with secondary structure from PDB
+## plt.b3&gt; ##D pdb &lt;- read.pdb( &quot;1bg2&quot; )
+## plt.b3&gt; ##D bfac &lt;- pdb$atom[pdb$calpha,&quot;b&quot;]
+## plt.b3&gt; ##D plot.bio3d(bfac, sse=pdb, ylab=&quot;B-factor&quot;, col=&quot;gray&quot;)
+## plt.b3&gt; ##D points(bfac, typ=&quot;l&quot;)
+## plt.b3&gt; ## End(No test)
+## plt.b3&gt; 
+## plt.b3&gt; ## Not run: 
+## plt.b3&gt; ##D ## Use PDB residue numbers and include short secondary structure elements
+## plt.b3&gt; ##D plot.bio3d(pdb$atom[pdb$calpha,&quot;b&quot;], sse=pdb, resno=pdb, ylab=&quot;B-factor&quot;,
+## plt.b3&gt; ##D   typ=&quot;l&quot;, lwd=1.5, col=&quot;blue&quot;, sse.min.length=0)
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Calculate secondary structure using stride() or dssp()
+## plt.b3&gt; ##D #sse &lt;- stride(pdb)
+## plt.b3&gt; ##D sse &lt;- dssp(pdb)
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Plot of B-factor values along with calculated secondary structure
+## plt.b3&gt; ##D plot.bio3d(pdb$atom[pdb$calpha,&quot;b&quot;], sse=sse, ylab=&quot;B-factor&quot;, typ=&quot;l&quot;,
+## plt.b3&gt; ##D col=&quot;blue&quot;, lwd=2)
+## plt.b3&gt; ## End(Not run)
+## plt.b3&gt; 
+## plt.b3&gt; ## No test: 
+## plt.b3&gt; ##D # PDB server connection required - testing excluded
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Plot 'aligned' data respecting gap positions
+## plt.b3&gt; ##D attach(transducin)
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D pdb = read.pdb(&quot;1tnd&quot;) ## Reference PDB see: pdbs$id[1]
+## plt.b3&gt; ##D pdb = trim.pdb(pdb, inds=atom.select(pdb, chain=&quot;A&quot;))
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Plot of B-factor values with gaps
+## plt.b3&gt; ##D plot.bio3d(pdbs$b, resno=pdb, sse=pdb, ylab=&quot;B-factor&quot;)
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D ## Plot of B-factor values after removing all gaps 
+## plt.b3&gt; ##D plot.bio3d(pdbs$b, rm.gaps=TRUE, resno = pdb, sse=pdb, ylab=&quot;B-factor&quot;)
+## plt.b3&gt; ##D 
+## plt.b3&gt; ##D detach(transducin)
+## plt.b3&gt; ## End(No test)
+## plt.b3&gt; 
+## plt.b3&gt; ## Fancy secondary structure elements
+## plt.b3&gt; ##plot.bio3d(pdb$atom[pdb$calpha,&quot;b&quot;], sse=pdb, ssetype=&quot;fancy&quot;)
+## plt.b3&gt; ## Currently not implemented
+## plt.b3&gt; 
+## plt.b3&gt; 
+## plt.b3&gt;</code></pre>
+</div>
+<div id="read-1hsg-pdb-file" class="section level1">
+<h1>read 1hsg pdb file</h1>
+<pre class="r"><code>pdb &lt;- read.pdb(&quot;1hsg&quot;)</code></pre>
+<pre><code>##   Note: Accessing on-line PDB file</code></pre>
+<pre class="r"><code>pdb</code></pre>
+<pre><code>## 
+##  Call:  read.pdb(file = &quot;1hsg&quot;)
+## 
+##    Total Models#: 1
+##      Total Atoms#: 1686,  XYZs#: 5058  Chains#: 2  (values: A B)
+## 
+##      Protein Atoms#: 1514  (residues/Calpha atoms#: 198)
+##      Nucleic acid Atoms#: 0  (residues/phosphate atoms#: 0)
+## 
+##      Non-protein/nucleic Atoms#: 172  (residues: 128)
+##      Non-protein/nucleic resid values: [ HOH (127), MK1 (1) ]
+## 
+##    Protein sequence:
+##       PQITLWQRPLVTIKIGGQLKEALLDTGADDTVLEEMSLPGRWKPKMIGGIGGFIKVRQYD
+##       QILIEICGHKAIGTVLVGPTPVNIIGRNLLTQIGCTLNFPQITLWQRPLVTIKIGGQLKE
+##       ALLDTGADDTVLEEMSLPGRWKPKMIGGIGGFIKVRQYDQILIEICGHKAIGTVLVGPTP
+##       VNIIGRNLLTQIGCTLNF
+## 
+## + attr: atom, xyz, seqres, helix, sheet,
+##         calpha, remark, call</code></pre>
+</div>
 
 
 

@@ -43,3 +43,61 @@ pdb <- read.pdb("1hsg")
 pdb
 ```
 
+# write function
+# select and write-out C-alpha atoms only
+```{r}
+ca.inds <- atom.select(pdb,"calpha")
+ca.inds
+
+# check if we have what we want
+pdb$atom[ca.inds$atom,]
+```
+
+# Looks good so lets continue to trim our PDB and write it out
+```{r}
+ca.pdb <- trim.pdb(pdb, ca.inds=ca.inds)
+ca.pdb
+write.pdb(ca.pdb, file = 
+            "calpha_only.pdb")
+```
+
+```{r}
+# Download some example PDB files
+ids <- c("1TND_B","1AGR_A","1TAG_A","1GG2_A","1KJY_A","4G5Q_A")
+files <- get.pdb(ids, split = TRUE)
+```
+
+
+# exefile
+```{r}
+pdbs <- pdbaln(files), fit = TRUE, exefile = "C:/Users/Miso/Downloads/muscle.exe"
+```
+
+# get sequence
+```{r}
+aa <- get.seq("1ake_A")
+
+# Blast or hmmer search
+b <- blast.pdb(aa)
+
+# Plot a summary of search results
+hits <- plot(b)
+
+head(hits$pdb.id)
+```
+
+```{r}
+# Fetch PDBs
+files <- get.pdb(hits$pdb.id, path = "pdbs", split = TRUE, gzip =
+TRUE)
+
+# Align structures
+pdbs <- pdbaln(files, fit = TRUE, exefile = "C:/Users/Miso/Downloads/muscle.exe")
+
+# Vector containing PDB codes
+ids <- basename.pdb(pdbs$id)
+
+# Draw schematic alignment
+plot(pdbs, labels=ids)
+```
+
