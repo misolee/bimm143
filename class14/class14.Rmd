@@ -231,3 +231,14 @@ ggplot(as.data.frame(res), aes(log2FoldChange, -1*log10(pvalue), col=sig)) +
     ggtitle("Volcano plot")
 ```
 
+```{r}
+vsdata <- vst(dds, blind = FALSE)
+
+# PCA
+plotPCA(vsdata, intgroup = "dex")
+```
+
+# Session Information
+```{r}
+sessionInfo()
+```
