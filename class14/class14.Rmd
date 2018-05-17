@@ -1,0 +1,233 @@
+---
+title: "class14"
+author: "Miso Lee"
+date: "May 17, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Bioconductor setup
+```{r}
+# source("http://bioconductor.org/biocLite.R")
+# biocLite()
+
+# Also need DESeq2
+# biocLite("DESeq2")
+
+# check I installed correctly
+# library(BiocInstaller)
+```
+
+```{r}
+counts <- read.csv("data/airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <- read.csv("data/airway_metadata.csv", stringsAsFactors = FALSE)
+
+head(counts)
+head(metadata)
+```
+
+## Toy differential gene expression
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.mean <- rowSums(counts[,control$id])/length(control$id)
+names(control.mean) <- counts$ensgene
+control.mean
+
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowSums(counts[,treated$id])/nrow(treated)
+names(treated.mean) <- counts$ensgene
+treated.mean
+
+# combining the meancount data for bookkeeping purposes
+meancounts <- data.frame(control.mean, treated.mean)
+colSums(meancounts)
+```
+
+## plot the meancounts
+```{r}
+plot(meancounts)
+plot(control.mean, treated.mean, log="xy", xlab = "log Control", ylab = "log Treated")
+```
+
+```{r}
+# calculating log2foldchange, adding it to our meancounts data.frame
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+
+# NaN = "not a number": returned when you divide by zero and try to take the log
+# -Inf = "negative infinity": returned when you try to take the log of zero
+# filtering our data (removing zero count genes)
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+A common threshold used for calling something differentially expressed is a log2(FoldChange) of greater than 2 or less than -2. Let’s filter the dataset both ways to see how many genes are up or down-regulated.
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+
+paste("Number of UP genes:", sum(up.ind))
+paste("Number of DOWN genes:", sum(down.ind))
+```
+
+## Adding annotation data
+```{r}
+anno <- read.csv("data/annotables_grch38.csv")
+head(anno)
+```
+
+# merge function
+# Q6. From consulting the help page for the merge() function can you set the by.x and by.y arguments appropriately to annotate our mycounts data.frame with all the available annotation data in your anno data.frame?
+```{r}
+merged.data <- merge(mycounts, anno, by.x = "row.names", by.y = "ensgene")
+View(merged.data)
+```
+
+# Bioconductor's annotation packages
+```{r}
+# library("AnnotationDbi")
+# biocLite("org.Hs.eg.db")
+library("org.Hs.eg.db")
+```
+
+```{r}
+# This is the organism annotation package (“org”) for Homo sapiens (“Hs”), organized as an AnnotationDbi database package (“db”), using Entrez Gene IDs (“eg”) as primary key. To get a list of all available key types, use:
+columns(org.Hs.eg.db)
+```
+
+```{r}
+# using mapIds() function to add individual columns to our results table
+mycounts$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+```
+
+## DESeq2 analysis
+```{r}
+library(DESeq2)
+citation("DESeq2")
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, colData=metadata, design=~dex, tidy=TRUE)
+dds
+
+# sizeFactors(dds)
+# dispersions(dds)
+# results(dds)
+
+dds <- DESeq(dds)
+
+# Getting results
+res <- results(dds)
+res
+
+# summarize some basic tallies using summary function
+summary(res)
+
+# order our results table by the smallest p value
+resOrdered <- res[order(res$pvalue),]
+head(resOrdered)
+
+# The results function contains a number of arguments to customize the results table. By default the argument alpha is set to 0.1. If the adjusted p value cutoff will be a value other than 0.1, alpha should be set to that value:
+res05 <- results(dds, alpha = 0.05)
+summary(res05)
+
+# The more generic way to access the actual subset of the data.frame passing a threshold like this is with the subset() function, e.g.:
+resSig05 <- subset(as.data.frame(res), padj < 0.05)
+nrow(resSig05)
+
+# Q9. How many are significant with an adjusted p-value < 0.05? How about 0.01? Save this last set of results as resSig01.
+res01 <- results(dds, alpha = 0.01)
+summary(res01)
+resSig01 <- subset(as.data.frame(res), padj < 0.01)
+nrow(resSig01)
+head(resSig01)
+
+# Q10. Using either the previously generated anno object (annotations from the file annotables_grch38.csv file) or the mapIds() function (from the AnnotationDbi package) add annotation to your res01 results data.frame.
+resSig01$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(resSig01),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+
+# arrange and view the results by the adjusted p-value
+ord <- order(resSig01$padj)
+View (resSig01[ord,])
+head(resSig01[ord,])
+
+# Finally, let’s write out the ordered significant results with annotations.
+write.csv(resSig01[ord,], "signif01_results.csv")
+signif01_results <- read.csv("signif01_results.csv")
+View(signif01_results)
+```
+
+## Data Visualization
+# Plotting counts
+```{r}
+i <- grep("CRISPLD2", resSig01$symbol)
+resSig01[i,]
+
+rownames(resSig01[i,])
+```
+
+# Now, with that gene ID in hand let’s plot the counts, where our intgroup, or “interesting group” variable is the “dex” column.
+```{r}
+plotCounts(dds, gene = "ENSG00000103196", intgroup = "dex")
+```
+
+# make a boxplot
+```{r}
+d <- plotCounts(dds, gene = "ENSG00000103196", intgroup = "dex", returnData = TRUE)
+head(d)
+
+boxplot(count ~ dex, data = d)
+```
+
+```{r}
+# As the returned object is a data.frame it is also all setup for ggplot2 based plotting.
+library(ggplot2)
+ggplot(d, aes(dex, count)) + geom_boxplot(aes(fill=dex)) + scale_y_log10() + ggtitle("CRISPLD2")
+```
+
+# MA & Volcano plots
+```{r}
+# Let’s make some other commonly produced visualizations from this data. First, let’s add a column called sig to our full res results that evaluates to TRUE if padj<0.05, and FALSE if not, and NA if padj is also NA.
+res$sig <- res$padj<0.05
+
+# How many of each?
+table(res$sig)
+
+sum(is.na(res$sig))
+```
+
+# In built MA-plot
+# In DESeq2, the function plotMA() shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet. Points will be colored red if the adjusted p value is less than 0.1. Points which fall out of the window are plotted as open triangles pointing either up or down.
+```{r}
+plotMA(res, ylim = c(-2,2))
+```
+
+```{r}
+resLFC <- lfcShrink(dds, coef = 2)
+resLFC
+```
+
+```{r}
+plotMA(resLFC, ylim = c(-2,2))
+```
+
+# Volcano plot
+```{r}
+ggplot(as.data.frame(res), aes(log2FoldChange, -1*log10(pvalue), col=sig)) + 
+    geom_point() + 
+    ggtitle("Volcano plot")
+```
+
